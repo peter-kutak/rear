@@ -59,6 +59,10 @@ if [[ "${GRUB_RESCUE_PASSWORD:0:3}" == '$1$' ]]; then
     GRUB_RESCUE_PASSWORD="--md5 $GRUB_RESCUE_PASSWORD"
 fi
 
+#if /boot directory is not on standalone partition
+grub_boot_prefix=""
+[[ $(stat -L -c '%d' /) == $(stat -L -c '%d' /boot/) ]] && grub_boot_prefix="/boot"
+
 awk -f- $grub_conf >$TMP_DIR/menu.lst <<EOF
 /^title Relax and Recover/ {
     ISREAR=1
@@ -79,8 +83,8 @@ awk -f- $grub_conf >$TMP_DIR/menu.lst <<EOF
 END {
     print "title Relax and Recover"
     print "\tpassword $GRUB_RESCUE_PASSWORD"
-    print "\tkernel /rear-kernel $KERNEL_CMDLINE"
-    print "\tinitrd /rear-initrd.cgz"
+    print "\tkernel $grub_boot_prefix/rear-kernel $KERNEL_CMDLINE"
+    print "\tinitrd $grub_boot_prefix/rear-initrd.cgz"
 }
 EOF
 
